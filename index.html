@@ -17,57 +17,45 @@
     }
     #cookie-consent {
       position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
+      bottom: 0; left: 0; right: 0;
       background: #222;
       color: #eee;
       padding: 15px;
       text-align: center;
       font-family: sans-serif;
       z-index: 1000;
+      display: block;
     }
     #cookie-consent button {
       margin-left: 10px;
       padding: 5px 10px;
       cursor: pointer;
     }
-    #cookie-consent button + button {
-      margin-left: 5px;
-    }
   </style>
 </head>
 <body>
-  <!-- Consent Banner -->
+
+  <!-- Consent banner -->
   <div id="cookie-consent">
-    This website uses cookies to enhance your experience and track usage. 
+    This website uses cookies to enhance your experience and track usage.
     <button id="accept-cookies">Accept</button>
-    <button id="decline-cookies">Decline</button>
+    <button id="decline-cookies" style="margin-left:5px;">Decline</button>
   </div>
 
   <script>
-    // Cookie helper functions
-    function getCookie(name) {
-      const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-      return match ? match[2] : null;
-    }
-
+    // Cookie helper to set cookie
     function setCookie(name, value, days) {
       const expires = new Date(Date.now() + days * 864e5).toUTCString();
       document.cookie = name + '=' + value + '; expires=' + expires + '; path=/';
     }
 
-    // Consent banner elements
+    // Always show consent banner on every page load
     const consentBanner = document.getElementById('cookie-consent');
     const acceptBtn = document.getElementById('accept-cookies');
     const declineBtn = document.getElementById('decline-cookies');
 
-    // Hide banner if consent already given or declined
-    if (getCookie('cookie-consent')) {
-      consentBanner.style.display = 'none';
-    }
+    consentBanner.style.display = 'block';
 
-    // Event listeners for buttons
     acceptBtn.addEventListener('click', () => {
       setCookie('cookie-consent', 'accepted', 365);
       consentBanner.style.display = 'none';
@@ -79,26 +67,20 @@
       consentBanner.style.display = 'none';
     });
 
-    // Load Google Analytics only if consent accepted
     function loadGoogleAnalytics() {
-      if (!getCookie('cookie-consent') || getCookie('cookie-consent') !== 'accepted') return;
+      if(window.gaLoaded) return; // avoid multiple loads
+      window.gaLoaded = true;
 
-      // Insert GA script dynamically
       const script1 = document.createElement('script');
       script1.async = true;
-      script1.src = 'https://www.googletagmanager.com/gtag/js?id=G-1XXEJZPMNN'; // replace with your actual ID
+      script1.src = 'https://www.googletagmanager.com/gtag/js?id=G-1XXEJZPMNN';
       document.head.appendChild(script1);
 
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       window.gtag = gtag;
       gtag('js', new Date());
-      gtag('config', 'G-1XXEJZPMNN'); // replace with your actual ID
-    }
-
-    // If consent already accepted on page load, load GA immediately
-    if (getCookie('cookie-consent') === 'accepted') {
-      loadGoogleAnalytics();
+      gtag('config', 'G-1XXEJZPMNN');
     }
   </script>
 
@@ -106,7 +88,7 @@
 
   <label>
     Am/V (m⁻¹): 
-    <input type="text" id="amv" placeholder="e.g. 400*1000/(200*1000)" />
+    <input type="text" id="amv" value="100" placeholder="e.g. 400*1000/(200*1000)" />
   </label>
 
   <label>
@@ -126,6 +108,7 @@
   </div>
 
   <script>
+    // Calculation of c_a based on temperature theta
     function caCalculate(theta) {
       if (theta >= 20 && theta < 600)
         return 425 + 0.773 * theta - 0.00169 * theta ** 2 + 2.22e-6 * theta ** 3;
@@ -139,12 +122,14 @@
         return null;
     }
 
+    // Calculate net heat transfer coefficient
     function hNetCalc(theta_g, theta_a, alpha_c = 25, phi = 1.0, e_m = 0.7, e_f = 1.0, sigma = 5.67e-8) {
       const h_net_c = alpha_c * (theta_g - theta_a);
       const h_net_r = phi * e_m * e_f * sigma * ((theta_g + 273.15) ** 4 - (theta_a + 273.15) ** 4);
       return h_net_c + h_net_r;
     }
 
+    // Change in steel temperature for one step
     function deltaThetaStep(theta_a, theta_g, AmV, delta_t, ksh = 1.0, rho_a = 7850) {
       const c_a = caCalculate(theta_a);
       if (!c_a) return 0;
@@ -152,10 +137,12 @@
       return ksh * AmV / (c_a * rho_a) * h_net * delta_t;
     }
 
+    // Gas temperature as a function of time (seconds)
     function thetaGas(t_seconds) {
       return 20 + 345 * Math.log10(8 * t_seconds / 60 + 1);
     }
 
+    // Safely evaluate Am/V expression entered by user
     function evaluateExpression(input) {
       try {
         return Function('"use strict"; return (' + input + ')')();
@@ -182,7 +169,7 @@
       const duration_min = parseFloat(document.getElementById('duration').value);
       const ksh = parseFloat(document.getElementById('ksh').value);
 
-      const delta_t = 1; // seconds
+      const delta_t = 1; // seconds per step
       const duration_sec = duration_min * 60;
       const steps = Math.floor(duration_sec / delta_t);
 
@@ -262,5 +249,6 @@
       });
     }
   </script>
+
 </body>
 </html>
