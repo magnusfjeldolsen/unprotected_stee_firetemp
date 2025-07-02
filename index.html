@@ -15,74 +15,50 @@
       width: 100% !important;
       height: auto !important;
     }
+
+    /* Fullscreen consent overlay */
     #cookie-consent {
       position: fixed;
-      bottom: 0; left: 0; right: 0;
-      background: #222;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
       color: #eee;
-      padding: 15px;
-      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
       font-family: sans-serif;
-      z-index: 1000;
-      display: block;
+      z-index: 10000;
+      padding: 20px;
+      text-align: center;
+    }
+    #cookie-consent p {
+      font-size: 1.2rem;
+      max-width: 600px;
+      margin-bottom: 20px;
     }
     #cookie-consent button {
-      margin-left: 10px;
-      padding: 5px 10px;
+      margin: 0 10px;
+      padding: 10px 20px;
+      font-size: 1rem;
       cursor: pointer;
+    }
+
+    /* Prevent scrolling when consent visible */
+    body.consent-active {
+      overflow: hidden;
     }
   </style>
 </head>
 <body>
 
-  <!-- Consent banner -->
+  <!-- Consent overlay -->
   <div id="cookie-consent">
-    This website uses cookies to enhance your experience and track usage.
-    <button id="accept-cookies">Accept</button>
-    <button id="decline-cookies" style="margin-left:5px;">Decline</button>
+    <p>This website uses cookies to enhance your experience and track usage.</p>
+    <div>
+      <button id="accept-cookies">Accept</button>
+      <button id="decline-cookies">Decline</button>
+    </div>
   </div>
-
-  <script>
-    // Cookie helper to set cookie
-    function setCookie(name, value, days) {
-      const expires = new Date(Date.now() + days * 864e5).toUTCString();
-      document.cookie = name + '=' + value + '; expires=' + expires + '; path=/';
-    }
-
-    // Always show consent banner on every page load
-    const consentBanner = document.getElementById('cookie-consent');
-    const acceptBtn = document.getElementById('accept-cookies');
-    const declineBtn = document.getElementById('decline-cookies');
-
-    consentBanner.style.display = 'block';
-
-    acceptBtn.addEventListener('click', () => {
-      setCookie('cookie-consent', 'accepted', 365);
-      consentBanner.style.display = 'none';
-      loadGoogleAnalytics();
-    });
-
-    declineBtn.addEventListener('click', () => {
-      setCookie('cookie-consent', 'declined', 365);
-      consentBanner.style.display = 'none';
-    });
-
-    function loadGoogleAnalytics() {
-      if(window.gaLoaded) return; // avoid multiple loads
-      window.gaLoaded = true;
-
-      const script1 = document.createElement('script');
-      script1.async = true;
-      script1.src = 'https://www.googletagmanager.com/gtag/js?id=G-1XXEJZPMNN';
-      document.head.appendChild(script1);
-
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      window.gtag = gtag;
-      gtag('js', new Date());
-      gtag('config', 'G-1XXEJZPMNN');
-    }
-  </script>
 
   <h2>Steel Fire Temperature Simulation (Unprotected)</h2>
 
@@ -108,6 +84,51 @@
   </div>
 
   <script>
+    // Show consent overlay and disable scrolling on body
+    window.addEventListener('DOMContentLoaded', () => {
+      const consentBanner = document.getElementById('cookie-consent');
+      const body = document.body;
+      
+      // Always show consent overlay on every page load
+      consentBanner.style.display = 'flex';
+      body.classList.add('consent-active');
+
+      const acceptBtn = document.getElementById('accept-cookies');
+      const declineBtn = document.getElementById('decline-cookies');
+
+      function hideConsent() {
+        consentBanner.style.display = 'none';
+        body.classList.remove('consent-active');
+      }
+
+      acceptBtn.addEventListener('click', () => {
+        document.cookie = "cookie-consent=accepted; max-age=" + 60*60*24*365 + "; path=/";
+        hideConsent();
+        loadGoogleAnalytics();
+      });
+
+      declineBtn.addEventListener('click', () => {
+        document.cookie = "cookie-consent=declined; max-age=" + 60*60*24*365 + "; path=/";
+        hideConsent();
+      });
+
+      function loadGoogleAnalytics() {
+        if(window.gaLoaded) return;
+        window.gaLoaded = true;
+
+        const script1 = document.createElement('script');
+        script1.async = true;
+        script1.src = 'https://www.googletagmanager.com/gtag/js?id=G-1XXEJZPMNN';
+        document.head.appendChild(script1);
+
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        window.gtag = gtag;
+        gtag('js', new Date());
+        gtag('config', 'G-1XXEJZPMNN');
+      }
+    });
+
     // Calculation of c_a based on temperature theta
     function caCalculate(theta) {
       if (theta >= 20 && theta < 600)
