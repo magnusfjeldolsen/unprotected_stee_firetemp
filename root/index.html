@@ -165,6 +165,15 @@ function plotResult(time, temperature, gas_temp) {
           title: {
             display: true,
             text: 'Time (minutes)'
+          },
+          ticks: {
+            callback: function(value, index, ticks) {
+              if (Number.isInteger(this.getLabelForValue(value))) {
+                return this.getLabelForValue(value);
+              }
+              return '';
+            },
+            stepSize: 1
           }
         },
         y: {

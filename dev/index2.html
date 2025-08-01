@@ -1,49 +1,47 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Steel Fire Temperature Calculator</title>
-  <meta name="description" content="Calculate the core temperature for unprotected structural steel members exposed to fire according to Eurocode 3 1-2.">
+  <meta name="description" content="Calculate the cpre steel temperature for unprotected structural members exposed to fire.">
   <meta name="robots" content="index, follow">
 
-  <!-- Tailwind with dark mode class strategy -->
-  <script>
-    tailwind.config = {
-      darkMode: 'class'
-    };
-  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body class="bg-gray-900 text-gray-100 font-sans min-h-screen flex flex-col items-center p-4">
 
-  <!-- Cookie Consent -->
+  <!-- Meta and structured data unchanged for SEO/OpenGraph -->
+</head>
+<body class="bg-gray-100 text-gray-900 font-sans min-h-screen flex flex-col items-center p-4">
+
+  <!-- Cookie Consent Overlay -->
   <div id="cookie-consent" class="fixed inset-0 bg-black bg-opacity-80 text-white flex flex-col items-center justify-center z-50 p-6 hidden">
-    <p class="text-lg max-w-xl text-center mb-6">This website uses cookies to enhance your experience and track usage.</p>
+    <p class="text-lg max-w-xl text-center mb-6">
+      This website uses cookies to enhance your experience and track usage.
+    </p>
     <div class="flex gap-4">
       <button id="accept-cookies" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">Accept</button>
       <button id="decline-cookies" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg">Decline</button>
     </div>
   </div>
 
-  <main class="w-full max-w-2xl bg-gray-800 shadow-lg rounded-xl p-6 space-y-6 mt-8">
-    <h2 class="text-2xl font-semibold text-center text-white">Temperature Simulation - Unprotected Steel Section - EC3 1-2</h2>
+  <main class="w-full max-w-2xl bg-white shadow-xl rounded-xl p-6 space-y-6 mt-8">
+    <h2 class="text-2xl font-semibold text-center text-gray-800">Steel Fire Temperature Simulation (Unprotected)</h2>
 
     <div class="space-y-4">
       <label class="block">
         <span class="text-sm font-medium">Am/V (m⁻¹)</span>
-        <input type="text" id="amv" value="100" placeholder="e.g. 400*1000/(200*1000)" class="w-full mt-1 px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-400" />
+        <input type="text" id="amv" value="100" placeholder="e.g. 400*1000/(200*1000)" class="w-full mt-1 px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300" />
       </label>
 
       <label class="block">
         <span class="text-sm font-medium">Fire Duration (minutes)</span>
-        <input type="number" id="duration" value="15" class="w-full mt-1 px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-400" />
+        <input type="number" id="duration" value="15" class="w-full mt-1 px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300" />
       </label>
 
       <label class="block">
         <span class="text-sm font-medium">Shadow Effect (k<sub>sh</sub>)</span>
-        <input type="number" id="ksh" value="1" step="0.01" min="0" max="1" class="w-full mt-1 px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-400" />
+        <input type="number" id="ksh" value="1" step="0.01" min="0" max="1" class="w-full mt-1 px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300" />
       </label>
 
       <button onclick="runSimulation()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition">Run Simulation</button>
@@ -59,6 +57,7 @@
       const consentBanner = document.getElementById('cookie-consent');
       const acceptBtn = document.getElementById('accept-cookies');
       const declineBtn = document.getElementById('decline-cookies');
+
       consentBanner.classList.remove('hidden');
 
       acceptBtn.addEventListener('click', () => {
@@ -75,10 +74,12 @@
       function loadGoogleAnalytics() {
         if(window.gaLoaded) return;
         window.gaLoaded = true;
+
         const script1 = document.createElement('script');
         script1.async = true;
         script1.src = 'https://www.googletagmanager.com/gtag/js?id=G-1XXEJZPMNN';
         document.head.appendChild(script1);
+
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         window.gtag = gtag;
@@ -142,6 +143,7 @@
 
       const duration_min = parseFloat(document.getElementById('duration').value);
       const ksh = parseFloat(document.getElementById('ksh').value);
+
       const delta_t = 1;
       const duration_sec = duration_min * 60;
       const steps = Math.floor(duration_sec / delta_t);
@@ -167,6 +169,7 @@
 
     function plotResult(time, temperature, gas_temp) {
       const ctx = document.getElementById('resultChart').getContext('2d');
+
       if (window.chartInstance) window.chartInstance.destroy();
 
       const finalGasTemp = gas_temp[gas_temp.length - 1].toFixed(1);
@@ -180,15 +183,15 @@
             {
               label: 'Steel Temperature (°C)',
               data: temperature,
-              borderColor: 'rgb(239, 68, 68)',
-              backgroundColor: 'rgba(239, 68, 68, 0.2)',
+              borderColor: 'red',
+              fill: false,
               tension: 0.1
             },
             {
               label: 'Gas Temperature (°C)',
               data: gas_temp,
-              borderColor: 'rgb(251, 191, 36)',
-              backgroundColor: 'rgba(251, 191, 36, 0.2)',
+              borderColor: 'orange',
+              fill: false,
               borderDash: [5, 5],
               tension: 0.1
             }
@@ -199,14 +202,7 @@
           plugins: {
             title: {
               display: true,
-              text: `Steel Temp: ${finalSteelTemp}°C | Gas Temp: ${finalGasTemp}°C at ${time[time.length - 1].toFixed(1)} min`,
-              color: '#fff',
-              font: { size: 16 }
-            },
-            legend: {
-              labels: {
-                color: '#ddd'
-              }
+              text: `Steel Temp: ${finalSteelTemp}°C | Gas Temp: ${finalGasTemp}°C at ${time[time.length - 1].toFixed(1)} min`
             }
           },
           scales: {
@@ -214,20 +210,18 @@
               type: 'linear',
               title: {
                 display: true,
-                text: 'Time (minutes)',
-                color: '#ccc'
+                text: 'Time (minutes)'
               },
-              ticks: { color: '#aaa' },
-              grid: { color: '#444' }
+              ticks: {
+                stepSize: 1,
+                callback: (value) => Number.isInteger(value) ? value : ''
+              }
             },
             y: {
               title: {
                 display: true,
-                text: 'Temperature (°C)',
-                color: '#ccc'
+                text: 'Temperature (°C)'
               },
-              ticks: { color: '#aaa' },
-              grid: { color: '#444' },
               min: 0
             }
           }
@@ -235,5 +229,6 @@
       });
     }
   </script>
+
 </body>
 </html>

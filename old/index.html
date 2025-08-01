@@ -1,84 +1,150 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Steel Fire Temperature Calculator</title>
-  <meta name="description" content="Calculate the core temperature for unprotected structural steel members exposed to fire according to Eurocode 3 1-2.">
+  <title>Steel Fire Temperature Calculator | Structural Engineering Tool</title>
+  <meta name="description" content="Calculate the cpre steel temperature for unprotected structural members exposed to fire. Free online tool for engineers and students.">
   <meta name="robots" content="index, follow">
 
-  <!-- Tailwind with dark mode class strategy -->
-  <script>
-    tailwind.config = {
-      darkMode: 'class'
-    };
-  </script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body class="bg-gray-900 text-gray-100 font-sans min-h-screen flex flex-col items-center p-4">
+  <!-- Open Graph for better sharing/preview -->
+  <meta property="og:title" content="Steel Fire Temperature Calculator" />
+  <meta property="og:description" content="Free online tool to estimate steel temperatures under fire. Based on Eurocode principles." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://magnusfjeldolsen.github.io/unprotected_stee_firetemp/" />
 
-  <!-- Cookie Consent -->
-  <div id="cookie-consent" class="fixed inset-0 bg-black bg-opacity-80 text-white flex flex-col items-center justify-center z-50 p-6 hidden">
-    <p class="text-lg max-w-xl text-center mb-6">This website uses cookies to enhance your experience and track usage.</p>
-    <div class="flex gap-4">
-      <button id="accept-cookies" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">Accept</button>
-      <button id="decline-cookies" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg">Decline</button>
+  <!-- Structured data for Google -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Steel Fire Temp Calculator",
+    "url": "https://magnusfjeldolsen.github.io/unprotected_stee_firetemp/",
+    "applicationCategory": "EngineeringApplication",
+    "description": "Free online structural engineering calculator for unprotected steel temperatures in fire, based on Eurocode.",
+    "operatingSystem": "All",
+    "browserRequirements": "Requires JavaScript"
+  }
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    label, input { display: block; margin: 10px 0; }
+    .canvas-wrapper {
+      max-width: 800px;
+      aspect-ratio: 5 / 4; /* height/length = 0.8 */
+    }
+    canvas {
+      width: 100% !important;
+      height: auto !important;
+    }
+
+    /* Fullscreen consent overlay */
+    #cookie-consent {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      color: #eee;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: sans-serif;
+      z-index: 10000;
+      padding: 20px;
+      text-align: center;
+    }
+    #cookie-consent p {
+      font-size: 1.2rem;
+      max-width: 600px;
+      margin-bottom: 20px;
+    }
+    #cookie-consent button {
+      margin: 0 10px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    /* Prevent scrolling when consent visible */
+    body.consent-active {
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Consent overlay -->
+  <div id="cookie-consent">
+    <p>This website uses cookies to enhance your experience and track usage.</p>
+    <div>
+      <button id="accept-cookies">Accept</button>
+      <button id="decline-cookies">Decline</button>
     </div>
   </div>
 
-  <main class="w-full max-w-2xl bg-gray-800 shadow-lg rounded-xl p-6 space-y-6 mt-8">
-    <h2 class="text-2xl font-semibold text-center text-white">Temperature Simulation - Unprotected Steel Section - EC3 1-2</h2>
+  <h2>Steel Fire Temperature Simulation (Unprotected)</h2>
 
-    <div class="space-y-4">
-      <label class="block">
-        <span class="text-sm font-medium">Am/V (m⁻¹)</span>
-        <input type="text" id="amv" value="100" placeholder="e.g. 400*1000/(200*1000)" class="w-full mt-1 px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-400" />
-      </label>
+  <label>
+    Am/V (m⁻¹): 
+    <input type="text" id="amv" value="100" placeholder="Math input possible, e.g. 400*1000/(200*1000) or 1/0.008 etc" />
+  </label>
 
-      <label class="block">
-        <span class="text-sm font-medium">Fire Duration (minutes)</span>
-        <input type="number" id="duration" value="15" class="w-full mt-1 px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-400" />
-      </label>
+  <label>
+    Fire Duration (minutes): 
+    <input type="number" id="duration" value="15" />
+  </label>
 
-      <label class="block">
-        <span class="text-sm font-medium">Shadow Effect (k<sub>sh</sub>)</span>
-        <input type="number" id="ksh" value="1" step="0.01" min="0" max="1" class="w-full mt-1 px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-400" />
-      </label>
+  <label>
+    Shadow Effect (k_sh): 
+    <input type="number" id="ksh" value="1" step="0.01" min="0" max="1" />
+  </label>
 
-      <button onclick="runSimulation()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition">Run Simulation</button>
-    </div>
+  <button onclick="runSimulation()">Run Simulation</button>
 
-    <div class="w-full aspect-[5/4]">
-      <canvas id="resultChart"></canvas>
-    </div>
-  </main>
+  <div class="canvas-wrapper">
+    <canvas id="resultChart"></canvas>
+  </div>
 
   <script>
+    // Show consent overlay and disable scrolling on body
     window.addEventListener('DOMContentLoaded', () => {
       const consentBanner = document.getElementById('cookie-consent');
+      const body = document.body;
+      
+      // Always show consent overlay on every page load
+      consentBanner.style.display = 'flex';
+      body.classList.add('consent-active');
+
       const acceptBtn = document.getElementById('accept-cookies');
       const declineBtn = document.getElementById('decline-cookies');
-      consentBanner.classList.remove('hidden');
+
+      function hideConsent() {
+        consentBanner.style.display = 'none';
+        body.classList.remove('consent-active');
+      }
 
       acceptBtn.addEventListener('click', () => {
         document.cookie = "cookie-consent=accepted; max-age=" + 60*60*24*365 + "; path=/";
-        consentBanner.classList.add('hidden');
+        hideConsent();
         loadGoogleAnalytics();
       });
 
       declineBtn.addEventListener('click', () => {
         document.cookie = "cookie-consent=declined; max-age=" + 60*60*24*365 + "; path=/";
-        consentBanner.classList.add('hidden');
+        hideConsent();
       });
 
       function loadGoogleAnalytics() {
         if(window.gaLoaded) return;
         window.gaLoaded = true;
+
         const script1 = document.createElement('script');
         script1.async = true;
         script1.src = 'https://www.googletagmanager.com/gtag/js?id=G-1XXEJZPMNN';
         document.head.appendChild(script1);
+
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         window.gtag = gtag;
@@ -87,6 +153,7 @@
       }
     });
 
+    // Calculation of c_a based on temperature theta
     function caCalculate(theta) {
       if (theta >= 20 && theta < 600)
         return 425 + 0.773 * theta - 0.00169 * theta ** 2 + 2.22e-6 * theta ** 3;
@@ -100,12 +167,14 @@
         return null;
     }
 
+    // Calculate net heat transfer coefficient
     function hNetCalc(theta_g, theta_a, alpha_c = 25, phi = 1.0, e_m = 0.7, e_f = 1.0, sigma = 5.67e-8) {
       const h_net_c = alpha_c * (theta_g - theta_a);
       const h_net_r = phi * e_m * e_f * sigma * ((theta_g + 273.15) ** 4 - (theta_a + 273.15) ** 4);
       return h_net_c + h_net_r;
     }
 
+    // Change in steel temperature for one step
     function deltaThetaStep(theta_a, theta_g, AmV, delta_t, ksh = 1.0, rho_a = 7850) {
       const c_a = caCalculate(theta_a);
       if (!c_a) return 0;
@@ -113,15 +182,17 @@
       return ksh * AmV / (c_a * rho_a) * h_net * delta_t;
     }
 
+    // Gas temperature as a function of time (seconds)
     function thetaGas(t_seconds) {
       return 20 + 345 * Math.log10(8 * t_seconds / 60 + 1);
     }
 
+    // Safely evaluate Am/V expression entered by user
     function evaluateExpression(input) {
       try {
         return Function('"use strict"; return (' + input + ')')();
       } catch (e) {
-        alert("Invalid Am/V expression.");
+        alert("Invalid Am/V expression. Please enter a valid formula.");
         throw e;
       }
     }
@@ -142,7 +213,8 @@
 
       const duration_min = parseFloat(document.getElementById('duration').value);
       const ksh = parseFloat(document.getElementById('ksh').value);
-      const delta_t = 1;
+
+      const delta_t = 1; // seconds per step
       const duration_sec = duration_min * 60;
       const steps = Math.floor(duration_sec / delta_t);
 
@@ -157,7 +229,7 @@
         const delta_theta = deltaThetaStep(theta_a, theta_g, AmV, delta_t, ksh);
         theta_a += delta_theta;
 
-        time_array.push(t / 60);
+        time_array.push(t / 60); // minutes
         theta_a_array.push(theta_a);
         gas_temp_array.push(theta_g);
       }
@@ -167,6 +239,7 @@
 
     function plotResult(time, temperature, gas_temp) {
       const ctx = document.getElementById('resultChart').getContext('2d');
+
       if (window.chartInstance) window.chartInstance.destroy();
 
       const finalGasTemp = gas_temp[gas_temp.length - 1].toFixed(1);
@@ -180,15 +253,15 @@
             {
               label: 'Steel Temperature (°C)',
               data: temperature,
-              borderColor: 'rgb(239, 68, 68)',
-              backgroundColor: 'rgba(239, 68, 68, 0.2)',
+              borderColor: 'red',
+              fill: false,
               tension: 0.1
             },
             {
               label: 'Gas Temperature (°C)',
               data: gas_temp,
-              borderColor: 'rgb(251, 191, 36)',
-              backgroundColor: 'rgba(251, 191, 36, 0.2)',
+              borderColor: 'orange',
+              fill: false,
               borderDash: [5, 5],
               tension: 0.1
             }
@@ -199,35 +272,28 @@
           plugins: {
             title: {
               display: true,
-              text: `Steel Temp: ${finalSteelTemp}°C | Gas Temp: ${finalGasTemp}°C at ${time[time.length - 1].toFixed(1)} min`,
-              color: '#fff',
-              font: { size: 16 }
-            },
-            legend: {
-              labels: {
-                color: '#ddd'
-              }
+              text: `Steel Temp: ${finalSteelTemp}°C | Gas Temp: ${finalGasTemp}°C at ${time[time.length - 1].toFixed(1)} min`
             }
           },
           scales: {
             x: {
-              type: 'linear',
+              type: 'linear',  // ← This is key
               title: {
                 display: true,
-                text: 'Time (minutes)',
-                color: '#ccc'
+                text: 'Time (minutes)'
               },
-              ticks: { color: '#aaa' },
-              grid: { color: '#444' }
+              ticks: {
+                stepSize: 1,
+                callback: function(value) {
+                  return Number.isInteger(value) ? value : '';
+                }
+              }
             },
             y: {
               title: {
                 display: true,
-                text: 'Temperature (°C)',
-                color: '#ccc'
+                text: 'Temperature (°C)'
               },
-              ticks: { color: '#aaa' },
-              grid: { color: '#444' },
               min: 0
             }
           }
@@ -235,5 +301,6 @@
       });
     }
   </script>
+
 </body>
 </html>
