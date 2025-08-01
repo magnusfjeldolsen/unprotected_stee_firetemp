@@ -4,57 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Steel Fire Temperature Calculator</title>
+  <meta name="description" content="Calculate the core temperature for unprotected structural steel members exposed to fire according to Eurocode 3 1-2.">
+  <meta name="robots" content="index, follow">
+
+  <!-- Tailwind with dark mode class strategy -->
   <script>
-    tailwind.config = { darkMode: 'class' };
+    tailwind.config = {
+      darkMode: 'class'
+    };
   </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <style>
-    @media print {
-      body {
-        background: #111 !important;
-        color: white !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
-      input,
-      button,
-      .print\\:hidden {
-        display: none !important;
-      }
-      .print\\:inline {
-        display: inline !important;
-      }
-      .print\\:flex {
-        display: flex !important;
-      }
-      .print\\:mt-6 {
-        margin-top: 1.5rem !important;
-      }
-      .print\\:border {
-        border: 1px solid #999 !important;
-      }
-      .print\\:rounded {
-        border-radius: 0.5rem !important;
-      }
-      .print\\:p-4 {
-        padding: 1rem !important;
-      }
-      .print\\:justify-between {
-        justify-content: space-between !important;
-      }
-      .print\\:items-center {
-        align-items: center !important;
-      }
-      .print\\:font-bold {
-        font-weight: bold !important;
-      }
-      canvas {
-        background-color: #111 !important;
-      }
-    }
-  </style>
+
 </head>
 <body class="bg-gray-900 text-gray-100 font-sans min-h-screen flex flex-col items-center p-4">
 
@@ -67,60 +29,35 @@
     </div>
   </div>
 
-  <main class="w-full max-w-4xl bg-gray-800 shadow-lg rounded-xl p-6 space-y-6 mt-8">
-    <h2 class="text-2xl font-semibold text-center text-white">Steel Fire Temperature Simulation (Unprotected)</h2>
+  <main class="w-full max-w-2xl bg-gray-800 shadow-lg rounded-xl p-6 space-y-6 mt-8">
+    <h2 class="text-2xl font-semibold text-center text-white">Temperature Simulation - Unprotected Steel Section - EC3 1-2</h2>
 
-    <!-- Main input + result container -->
-    <div class="flex flex-wrap justify-between gap-4">
+    <div class="space-y-4">
+      <label class="block">
+        <span class="text-sm font-medium">Am/V (m⁻¹)</span>
+        <input type="text" id="amv" value="100" placeholder="e.g. 400*1000/(200*1000)" class="w-full mt-1 px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-400" />
+      </label>
 
-      <!-- Left: Labels -->
-      <div class="flex flex-col justify-center space-y-8 min-w-[120px] text-right pr-4">
-        <label for="amv" class="text-sm font-medium">Am/V [m⁻¹] =</label>
-        <label for="duration" class="text-sm font-medium">Fire Duration =</label>
-        <label for="ksh" class="text-sm font-medium">k<sub>sh</sub> =</label>
-      </div>
+      <label class="block">
+        <span class="text-sm font-medium">Fire Duration (minutes)</span>
+        <input type="number" id="duration" value="15" class="w-full mt-1 px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-400" />
+      </label>
 
-      <!-- Middle: Inputs and AmV Result -->
-      <div class="flex flex-col justify-center space-y-6 min-w-[160px]">
-        <div class="flex items-center gap-4">
-          <input id="amv" value="" placeholder="Math input is possible, i.e. 1/0.008" class="w-full px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring focus:ring-blue-400 min-w-[300px]"  />
-          <span class="text-green-400" id="amv-eval">-</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <input type="number" id="duration" value="15" class="w-24 px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring focus:ring-blue-400" />
-          <span class="text-gray-300">minutes</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <input type="number" id="ksh" value="1" step="0.01" min="0" max="1" class="w-24 px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring focus:ring-blue-400" />
-          <span class="text-gray-300">[shadow effect]</span>
-        </div>
-      </div>
+      <label class="block">
+        <span class="text-sm font-medium">Shadow Effect (k<sub>sh</sub>)</span>
+        <input type="number" id="ksh" value="1" step="0.01" min="0" max="1" class="w-full mt-1 px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-400" />
+      </label>
 
-      <!-- Right: Empty Space -->
-      <div class="min-w-[220px] flex flex-col justify-center"></div>
+      <button onclick="runSimulation()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition">Run Simulation</button>
 
     </div>
 
-
-      <!-- Buttons -->
-      <div class="space-y-2 print:hidden">
-        <button onclick="runSimulation()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition">
-          Run Simulation
-        </button>
-        <button onclick="window.print()" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 rounded-lg transition">
-          Print to PDF
-        </button>
-      </div>
-    </div>
-
-    <!-- Chart -->
-    <div class="w-full aspect-[5/4] print:border print:rounded print:p-4 print:mt-6 bg-gray-900">
-      <canvas id="resultChart" class="print:!bg-gray-900"></canvas>
+    <div class="w-full aspect-[5/4]">
+      <canvas id="resultChart"></canvas>
     </div>
   </main>
 
   <script>
-    // Cookie consent logic
     window.addEventListener('DOMContentLoaded', () => {
       const consentBanner = document.getElementById('cookie-consent');
       const acceptBtn = document.getElementById('accept-cookies');
@@ -130,24 +67,29 @@
       acceptBtn.addEventListener('click', () => {
         document.cookie = "cookie-consent=accepted; max-age=" + 60*60*24*365 + "; path=/";
         consentBanner.classList.add('hidden');
+        loadGoogleAnalytics();
       });
 
       declineBtn.addEventListener('click', () => {
         document.cookie = "cookie-consent=declined; max-age=" + 60*60*24*365 + "; path=/";
         consentBanner.classList.add('hidden');
       });
+
+      function loadGoogleAnalytics() {
+        if(window.gaLoaded) return;
+        window.gaLoaded = true;
+        const script1 = document.createElement('script');
+        script1.async = true;
+        script1.src = 'https://www.googletagmanager.com/gtag/js?id=G-1XXEJZPMNN';
+        document.head.appendChild(script1);
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        window.gtag = gtag;
+        gtag('js', new Date());
+        gtag('config', 'G-1XXEJZPMNN');
+      }
     });
 
-    // Copy input values to print placeholders before printing
-    function updatePrintFields() {
-  document.getElementById('amv-print').textContent = document.getElementById('amv').value;
-  document.getElementById('duration-print').textContent = document.getElementById('duration').value + ' minutes';
-  document.getElementById('ksh-print').textContent = document.getElementById('ksh').value + ' [shadow effect]';
-}
-
-    window.addEventListener('beforeprint', updatePrintFields);
-
-    // Fire simulation functions
     function caCalculate(theta) {
       if (theta >= 20 && theta < 600)
         return 425 + 0.773 * theta - 0.00169 * theta ** 2 + 2.22e-6 * theta ** 3;
@@ -197,10 +139,7 @@
       let AmV;
       try {
         AmV = evaluateExpression(amvInput);
-        document.getElementById('amv-eval').textContent = `= ${AmV.toFixed(2)}`;
-        document.getElementById('amv-eval').classList.remove('hidden');
       } catch {
-        document.getElementById('amv-eval').classList.add('hidden');
         return;
       }
 
@@ -276,12 +215,20 @@
           scales: {
             x: {
               type: 'linear',
-              title: { display: true, text: 'Time (minutes)', color: '#ccc' },
+              title: {
+                display: true,
+                text: 'Time (minutes)',
+                color: '#ccc'
+              },
               ticks: { color: '#aaa' },
               grid: { color: '#444' }
             },
             y: {
-              title: { display: true, text: 'Temperature (°C)', color: '#ccc' },
+              title: {
+                display: true,
+                text: 'Temperature (°C)',
+                color: '#ccc'
+              },
               ticks: { color: '#aaa' },
               grid: { color: '#444' },
               min: 0
@@ -291,9 +238,5 @@
       });
     }
   </script>
-
-<footer class="text-xs text-gray-400 fixed bottom-2 right-2 print:relative print:bottom-0 print:right-0 print:mb-2 print:mr-2">
-  Free to use. Created by Magnus Fjeld Olsen.
-</footer>
 </body>
 </html>
